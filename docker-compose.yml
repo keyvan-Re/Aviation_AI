@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  aviation-app:
+    image: keyvan65/repo_aviation_ai:latest # اسم ایمیج شما در داکر هاب
+    ports:
+      - "8501:8501"
+    volumes:
+      # مپ کردن پوشه دیتابیس سرور آروان به داخل کانتینر
+      - "./database:/app/database"

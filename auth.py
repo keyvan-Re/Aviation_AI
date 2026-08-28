@@ -2,9 +2,16 @@ import streamlit as st
 import sqlite3
 import bcrypt
 import json
+import os
+
+# تعریف مسیر دیتابیس داخل پوشه database
+DB_PATH = os.path.join("database", "users.db")
 
 def init_db():
-    conn = sqlite3.connect('users.db')
+    # اطمینان از وجود پوشه database قبل از ساخت فایل
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     # Users table
     c.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -40,7 +47,7 @@ def verify_password(password, hashed):
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
 def add_user(username, password):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     try:
         c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hash_password(password)))
@@ -52,7 +59,7 @@ def add_user(username, password):
         conn.close()
 
 def authenticate_user(username, password):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT password FROM users WHERE username=?", (username,))
     result = c.fetchone()
@@ -63,7 +70,7 @@ def authenticate_user(username, password):
 
 # --- Chat & History Functions ---
 def create_new_chat(username, title="New Chat"):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("INSERT INTO chats (username, title, is_archived) VALUES (?, ?, 0)", (username, title))
     chat_id = c.lastrowid
@@ -72,7 +79,7 @@ def create_new_chat(username, title="New Chat"):
     return chat_id
 
 def get_user_chats(username):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT id, title FROM chats WHERE username=? AND is_archived=0 ORDER BY id DESC", (username,))
     chats = c.fetchall()
@@ -80,7 +87,7 @@ def get_user_chats(username):
     return chats
 
 def get_archived_chats(username):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT id, title FROM chats WHERE username=? AND is_archived=1 ORDER BY id DESC", (username,))
     chats = c.fetchall()
@@ -88,14 +95,14 @@ def get_archived_chats(username):
     return chats
 
 def update_chat_title(chat_id, title):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("UPDATE chats SET title=? WHERE id=?", (title, chat_id))
     conn.commit()
     conn.close()
 
 def delete_chat(chat_id):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("DELETE FROM chats WHERE id=?", (chat_id,))
     c.execute("DELETE FROM messages WHERE chat_id=?", (chat_id,))
@@ -103,7 +110,7 @@ def delete_chat(chat_id):
     conn.close()
 
 def archive_chat(chat_id):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("UPDATE chats SET is_archived=1 WHERE id=?", (chat_id,))
     conn.commit()
@@ -111,7 +118,7 @@ def archive_chat(chat_id):
 
 def save_message(chat_id, role, content, sources=None):
     sources_str = json.dumps(sources) if sources else "[]"
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("INSERT INTO messages (chat_id, role, content, sources) VALUES (?, ?, ?, ?)", 
               (chat_id, role, content, sources_str))
@@ -119,7 +126,7 @@ def save_message(chat_id, role, content, sources=None):
     conn.close()
 
 def get_chat_messages(chat_id):
-    conn = sqlite3.connect('users.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT role, content, sources FROM messages WHERE chat_id=? ORDER BY id ASC", (chat_id,))
     msgs = c.fetchall()
@@ -165,3 +172,27 @@ def show_login_page():
                     st.success("Account successfully created! You can now log in.")
                 else:
                     st.error("This username is already taken.")
+
+def delete_last_interaction(chat_id):
+    """
+    حذف آخرین تعامل (سوال کاربر و جواب سیستم) از دیتابیس برای ویرایش
+    """
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    
+    # پیدا کردن آیدیِ دو پیام آخر (سوال کاربر و جواب سیستم) در چت فعلی
+    c.execute('''
+        SELECT id FROM messages 
+        WHERE chat_id = ? 
+        ORDER BY id DESC LIMIT 2
+    ''', (chat_id,))
+    
+    rows = c.fetchall()
+    
+    # حذف آن دو پیام
+    for row in rows:
+        c.execute('DELETE FROM messages WHERE id = ?', (row[0],))
+        
+    conn.commit()
+    conn.close()
+
