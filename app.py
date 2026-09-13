@@ -104,7 +104,7 @@ if 'edit_text' not in st.session_state:
     st.session_state.edit_text = ""
 if 'pending_prompt' not in st.session_state:
     st.session_state.pending_prompt = None
-# متغیر جدید برای حفظ موقت منابعِ آخرین پیام هنگام Refresh شدن صفحه
+
 if 'latest_sources' not in st.session_state:
     st.session_state.latest_sources = {}
 
@@ -234,7 +234,7 @@ else:
             memory.save_context({"question": db_messages[i]["content"]}, 
                                 {"answer": db_messages[i+1]["content"]})
 
-    # --- [نمایش تاریخچه چت] ---
+  
     for i, msg in enumerate(db_messages):
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
