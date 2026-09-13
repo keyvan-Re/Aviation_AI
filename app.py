@@ -4,7 +4,7 @@ import json
 import base64
 from openai import OpenAI
 import streamlit as st
-import streamlit.components.v1 as components  # اضافه شده برای دکمه کپی
+import streamlit.components.v1 as components  
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_classic.memory import ConversationBufferMemory
@@ -21,9 +21,9 @@ def get_image_base64(uploaded_file):
     bytes_data = uploaded_file.getvalue()
     return base64.b64encode(bytes_data).decode('utf-8')
 
-# --- [تابع جدید برای رندر کردن دکمه کپی زیر هر پیام] ---
+
 def render_copy_button(text):
-    # تبدیل متن به Base64 برای جلوگیری از تداخل کاراکترهای خاص در جاوا اسکریپت
+  
     b64_text = base64.b64encode(text.encode('utf-8')).decode('utf-8')
     
     html_code = f"""
@@ -89,7 +89,7 @@ def render_copy_button(text):
     components.html(html_code, height=35)
 # ---------------------------------------------------------
 
-# --- [مدیریت Session State ها] ---
+
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 if 'username' not in st.session_state:
@@ -239,10 +239,10 @@ else:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
             
-            # ---> فراخوانی دکمه کپی برای هر پیام (سوال و جواب) <---
+        
             render_copy_button(msg["content"])
             
-            # 1. اگر در دیتابیس منابعی داشتیم (فعلا دیتابیس فقط متن ذخیره میکند)
+          
             if msg["role"] == "assistant" and len(msg.get("sources", [])) > 0:
                 with st.expander("📑 Sources Used"):
                     for j, doc_dict in enumerate(msg["sources"]):
@@ -251,8 +251,7 @@ else:
                         st.write(f"**Source: {source_name} (Page {page_number}):**")
                         st.write(doc_dict.get('content', ''))
                         
-            # 2. نمایش منابع موقت (برای آخرین پیام پردازش شده تا در صورت رفرش از بین نرود)
-            elif msg["role"] == "assistant" and i == len(db_messages) - 1:
+           elif msg["role"] == "assistant" and i == len(db_messages) - 1:
                 chat_id = st.session_state.current_chat_id
                 if chat_id in st.session_state.latest_sources and st.session_state.latest_sources[chat_id]:
                     with st.expander("📑 Sources Used"):
@@ -265,7 +264,7 @@ else:
     is_current_archived = any(c[0] == st.session_state.current_chat_id for c in archived_chats)
     
     if is_current_archived:
-        st.warning("این چت آرشیو شده است و فقط قابل خواندن میباشد.")
+        st.warning("This chat has been archived and is read-only.")
     else:
         last_user_msg = None
         for msg in reversed(db_messages):
@@ -337,7 +336,7 @@ else:
                     )
                     final_prompt = transcript.text
                 except Exception as e:
-                    st.error(f"خطا در تبدیل صدا به متن. لطفاً دوباره تلاش کنید: {e}")
+                    st.error(f"Error converting speech to text. Please try again: {e}")
                     st.stop()
 
         if final_prompt:
@@ -411,7 +410,7 @@ Standalone Question:"""
                         try:
                             source_docs = retriever.invoke(search_query)
                         except Exception as e:
-                            st.error(f"ارتباط با سرور برای جستجوی داکیومنت قطع شد: {e}")
+                            st.error(f"Connection to the server for document search was lost: {e}")
                             st.stop()
 
                         context_parts = []
@@ -465,10 +464,10 @@ Helpful Answer in English:"""
                         is_answer_found_in_sources = False
                         answer = answer.replace("[NO_INFO]", "").strip()
 
-                    # نمایش موقت متن قبل از رفرش صفحه
+                
                     st.markdown(answer)
                     
-                    # استخراج منابع برای ذخیره موقت
+                  
                     sources_list = []
                     if source_docs and len(source_docs) > 0 and is_answer_found_in_sources:
                         for i, doc in enumerate(source_docs):
@@ -483,15 +482,11 @@ Helpful Answer in English:"""
                 
             auth.save_message(st.session_state.current_chat_id, "assistant", answer)
             
-            # --- [تغییرات کلیدی برای حل مشکل گم شدن کلیدها] ---
             
-            # ذخیره منابع آخرین پیام در نشست فعلی تا بعد از Refresh حفظ شود
             st.session_state.latest_sources[st.session_state.current_chat_id] = sources_list
             
-            # ریست کردن وضعیت دکمه‌های آپلود
+         
             st.session_state.file_uploader_key += 1
             
-            # اعمال Refresh اجباری؛ این کار باعث می‌شود دکمه‌های Edit/Attach دوباره 
-            # در پایین‌ترین بخش فرم و آپدیت‌شده رسم شوند (و چون در حلقه بالا دکمه کپی 
-            # قرار داده شده، پیام‌های جدید نیز بلافاصله با دکمه کپی نمایش داده می‌شوند)
+           
             st.rerun()
