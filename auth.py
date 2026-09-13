@@ -4,11 +4,11 @@ import bcrypt
 import json
 import os
 
-# تعریف مسیر دیتابیس داخل پوشه database
+
 DB_PATH = os.path.join("database", "users.db")
 
 def init_db():
-    # اطمینان از وجود پوشه database قبل از ساخت فایل
+   
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     
     conn = sqlite3.connect(DB_PATH)
@@ -23,11 +23,11 @@ def init_db():
                     title TEXT NOT NULL,
                     is_archived INTEGER DEFAULT 0)''')
     
-    # برای سازگاری با دیتابیس‌های قبلی که ستون is_archived را نداشتند
+    
     try:
         c.execute("ALTER TABLE chats ADD COLUMN is_archived INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
-        pass # ستون از قبل وجود دارد
+        pass 
 
     # Messages table
     c.execute('''CREATE TABLE IF NOT EXISTS messages (
@@ -174,13 +174,11 @@ def show_login_page():
                     st.error("This username is already taken.")
 
 def delete_last_interaction(chat_id):
-    """
-    حذف آخرین تعامل (سوال کاربر و جواب سیستم) از دیتابیس برای ویرایش
-    """
+    
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     
-    # پیدا کردن آیدیِ دو پیام آخر (سوال کاربر و جواب سیستم) در چت فعلی
+
     c.execute('''
         SELECT id FROM messages 
         WHERE chat_id = ? 
@@ -189,7 +187,6 @@ def delete_last_interaction(chat_id):
     
     rows = c.fetchall()
     
-    # حذف آن دو پیام
     for row in rows:
         c.execute('DELETE FROM messages WHERE id = ?', (row[0],))
         
