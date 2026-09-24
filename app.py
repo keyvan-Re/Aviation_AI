@@ -250,7 +250,7 @@ else:
                         source_name = doc_dict.get('source', f'Source {j+1}')
                         st.write(f"**Source: {source_name} (Page {page_number}):**")
                         st.write(doc_dict.get('content', ''))
-            #111444            
+                     
             elif msg["role"] == "assistant" and i == len(db_messages) - 1:
                 chat_id = st.session_state.current_chat_id
                 if chat_id in st.session_state.latest_sources and st.session_state.latest_sources[chat_id]:
