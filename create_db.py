@@ -15,7 +15,7 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=10
 docs = text_splitter.split_documents(documents)
 
 embeddings = OpenAIEmbeddings(
-    openai_api_key="sk-jOn337n0y1yYP7kWTQVFRzuCsvfXlA5Y56kUDkRaQeoqhORC" , 
+    openai_api_key="" , 
     openai_api_base="https://api.gapgpt.app/v1" 
     
 )

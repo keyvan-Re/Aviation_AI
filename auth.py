@@ -157,18 +157,22 @@ def show_login_page():
             else:
                 st.error("Invalid username or password.")
                 
-    with tab2:
-        st.subheader("Create a New Account")
-        reg_username = st.text_input("New Username", key="reg_user")
-        reg_password = st.text_input("Password", type="password", key="reg_pass")
-        reg_password_confirm = st.text_input("Confirm Password", type="password", key="reg_pass_confirm")
-        if st.button("Register"):
-            if reg_password != reg_password_confirm:
-                st.error("Passwords do not match.")
-            elif len(reg_password) < 6:
-                st.warning("Password must be at least $6$ characters long.")
-            else:
-                if add_user(reg_username, reg_password):
+        with tab2:
+            st.subheader("Create a New Account")
+            with st.form("register_form"):
+                reg_username = st.text_input("New Username")
+                reg_password = st.text_input("Password", type="password")
+                reg_password_confirm = st.text_input("Confirm Password", type="password")
+                submitted = st.form_submit_button("Register")
+
+            if submitted:
+                if not reg_username.strip():
+                    st.error("Please enter a username.")
+                elif reg_password != reg_password_confirm:
+                    st.error("Passwords do not match.")
+                elif len(reg_password) < 6:
+                    st.warning("Password must be at least 6 characters long.")
+                elif add_user(reg_username.strip(), reg_password):
                     st.success("Account successfully created! You can now log in.")
                 else:
                     st.error("This username is already taken.")
