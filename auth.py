@@ -162,14 +162,11 @@ def show_login_page():
             with st.form("register_form"):
                 reg_username = st.text_input("New Username")
                 reg_password = st.text_input("Password", type="password")
-                reg_password_confirm = st.text_input("Confirm Password", type="password")
                 submitted = st.form_submit_button("Register")
 
             if submitted:
                 if not reg_username.strip():
                     st.error("Please enter a username.")
-                elif reg_password != reg_password_confirm:
-                    st.error("Passwords do not match.")
                 elif len(reg_password) < 6:
                     st.warning("Password must be at least 6 characters long.")
                 elif add_user(reg_username.strip(), reg_password):
