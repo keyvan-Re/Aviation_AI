@@ -1,4 +1,5 @@
 ﻿# ✈️ Aviation AI Assistant
+ [**Demo**](https://aviai-6eceb1a499-avai.apps.ir-central1.arvancaas.ir/)
 
 A chat assistant built with **Streamlit** that answers aviation and aircraft maintenance questions using your own PDF manuals. It uses **RAG** (Retrieval-Augmented Generation): it searches your documents first, then writes an answer and shows the sources it used.
 
